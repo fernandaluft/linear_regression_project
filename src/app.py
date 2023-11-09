@@ -20,24 +20,23 @@ df.duplicated().sum()
 
 #Dropping duplicates
 df.drop_duplicates(inplace=True)
+df = df.reset_index(drop=True)
 
 #Descriptive statistics and plot of categorical variables
 cat_variables = df.describe(include=['O'])
-cat_variables
 
 #Plots
 fig, axs = plt.subplots(1,3, figsize=(12,4))
 
-sns.histplot(ax=axs[0],data=df, x=df['sex'])
-sns.histplot(ax=axs[1], data=df, x=df['smoker'])
-sns.histplot(ax=axs[2], data=df, x=df['region'])
+sns.countplot(ax=axs[0],data=df, x=df['sex'])
+sns.countplot(ax=axs[1], data=df, x=df['smoker'])
+sns.countplot(ax=axs[2], data=df, x=df['region'])
 
 plt.tight_layout()
 plt.show()
 
 #Descriptive statistics and plot of numerical variables
 num_variables = df.describe()
-num_variables
 
 #Plots
 col_n_list = [i for i in num_variables.columns]
@@ -58,6 +57,9 @@ for col in col_n_list:
 plt.tight_layout()
 plt.show()
 
+#Correlation matrix numerical variables
+sns.heatmap(df[col_n_list].corr(), annot=True, fmt='.2f')
+
 #Feature scaling
 
 #Copy of the dataset and factorising categorical variables
@@ -71,17 +73,8 @@ scaler = MinMaxScaler()
 df_encoded[['age', 'bmi', 'children', 'charges']] = scaler.fit_transform(df_encoded[['age', 'bmi', 'children', 'charges']])
 
 #Correlation Matrix
+fig = plt.figure(figsize=(8,6))
 sns.heatmap(df_encoded.corr(), annot=True, fmt=".2f")
-plt.tight_layout()
-plt.show()
-
-#Plots of the correlation between predictors and target variable
-fig, axis=plt.subplots(1,3, figsize=(10,7))
-
-sns.regplot(ax = axis[0], data = df_encoded, x = "smoker", y = "charges")
-sns.regplot(ax = axis[1], data = df_encoded, x = "age", y = "charges")
-sns.regplot(ax = axis[2], data = df_encoded, x = "bmi", y = "charges")
-
 plt.tight_layout()
 plt.show()
 
@@ -91,8 +84,8 @@ y = df_encoded['charges']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-print('Variables:', X_train.shape, X_test.shape)
-print('Targets:', y_train.shape, y_test.shape)
+print('Train data:\nX:', X_train.shape, 'y:', y_train.shape)
+print('Test data:\nX:', X_test.shape, 'y:', y_test.shape)
 
 ###Machine Learning Model###
 
@@ -101,10 +94,12 @@ model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)
 
+print(f"Intercept (a): {model.intercept_}")
+print(f"Coefficients (b): {model.coef_}")
+
 ##Checking accuracy of the model
 
 #Mean Squared Error, R2 Score
 msq=mean_squared_error(y_test, y_pred)
-r2=r2_score(y_test, y_pred)
-
-print(f"The MSE of the model is {msq} and the R2 Score is {r2}.")
+r2t=r2_score(y_test, y_pred)
+print(f"The MSE of the test data is {msq} and the R2 Score is {r2}.")
